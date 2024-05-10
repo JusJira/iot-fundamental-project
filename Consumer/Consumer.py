@@ -42,18 +42,20 @@ def on_connect(client, userdata, flags, rc, properties):
  
 # Subscribe to a topic
 # mqttc.subscribe(MQTT_PUBLISH_TOPIC)
-mqttc.subscribe([("@msg/data", 0), ("@msg/data1", 0)])
+mqttc.subscribe([("@msg/data/1", 0),("@msg/data/2", 0),("@msg/data/3", 0)])
  
 def on_message(client, userdata, msg):
     """ The callback for when a PUBLISH message is received from the server."""
     print(msg.topic+" "+str(msg.payload))
+    sensor_point = msg.topic.split("/")[-1]
 
     # Write data in InfluxDB
     payload = json.loads(msg.payload)
-    # write_to_influxdb(payload)
+    write_to_influxdb(payload,sensor_point)
 
     # POST data to predict the output label
     json_data = json.dumps(payload)
+    print(json_data)
     # post_to_predict(json_data)
 
 # Function to post to real-time prediction endpoint
@@ -65,28 +67,14 @@ def on_message(client, userdata, msg):
 #         print("POST request failed!", response.status_code)
 
 # Function to write data to InfluxDB
-# def write_to_influxdb(data):
-#     # format data
-#     point = Point("sensor_data")\
-#         .field("S1_Temp", data["S1_Temp"])\
-#         .field("S2_Temp", data["S2_Temp"])\
-#         .field("S3_Temp", data["S3_Temp"])\
-#         .field("S4_Temp", data["S4_Temp"])\
-#         .field("S1_Light", data["S1_Light"])\
-#         .field("S2_Light", data["S2_Light"])\
-#         .field("S3_Light", data["S3_Light"])\
-#         .field("S4_Light", data["S4_Light"])\
-#         .field("S1_Sound", data["S1_Sound"])\
-#         .field("S2_Sound", data["S2_Sound"])\
-#         .field("S3_Sound", data["S3_Sound"])\
-#         .field("S4_Sound", data["S4_Sound"])\
-#         .field("S5_CO2", data["S5_CO2"])\
-#         .field("S5_CO2_Slope", data["S5_CO2_Slope"])\
-#         .field("S6_PIR", data["S6_PIR"])\
-#         .field("S7_PIR", data["S7_PIR"])\
-#         .field("Room_Occupancy_Count", data["Room_Occupancy_Count"])
+def write_to_influxdb(data, sensor_point):
+    # format data
+    point = Point("sensor_"+sensor_point)\
+        .field("Temperature", data["temperature"])\
+        .field("Humidity", data["humidity"])\
+        .field("Pressure", data["pressure"])\
 
-#     write_api.write(BUCKET, os.environ.get('INFLUXDB_ORG'), point)
+    write_api.write(BUCKET, os.environ.get('INFLUXDB_ORG'), point)
 
 ## MQTT logic - Register callbacks and start MQTT client
 mqttc.on_connect = on_connect
