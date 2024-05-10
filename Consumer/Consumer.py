@@ -28,7 +28,6 @@ write_api = client.write_api()
  
 # MQTT broker config
 MQTT_BROKER_URL = os.environ.get('MQTT_URL')
-MQTT_PUBLISH_TOPIC = "@msg/data"
 print("connecting to MQTT Broker", MQTT_BROKER_URL)
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 mqttc.connect(MQTT_BROKER_URL,1883)
@@ -41,7 +40,6 @@ def on_connect(client, userdata, flags, rc, properties):
     print("Connected with result code "+str(rc))
  
 # Subscribe to a topic
-# mqttc.subscribe(MQTT_PUBLISH_TOPIC)
 mqttc.subscribe([("@msg/data/1", 0),("@msg/data/2", 0),("@msg/data/3", 0)])
  
 def on_message(client, userdata, msg):
