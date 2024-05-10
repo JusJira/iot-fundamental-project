@@ -28,7 +28,6 @@ write_api = client.write_api()
  
 # MQTT broker config
 MQTT_BROKER_URL = os.environ.get('MQTT_URL')
-MQTT_PUBLISH_TOPIC = "@msg/data"
 print("connecting to MQTT Broker", MQTT_BROKER_URL)
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 mqttc.connect(MQTT_BROKER_URL,1883)
@@ -41,7 +40,6 @@ def on_connect(client, userdata, flags, rc, properties):
     print("Connected with result code "+str(rc))
  
 # Subscribe to a topic
-# mqttc.subscribe(MQTT_PUBLISH_TOPIC)
 mqttc.subscribe([("@msg/data/1", 0),("@msg/data/2", 0),("@msg/data/3", 0)])
  
 def on_message(client, userdata, msg):
@@ -56,15 +54,15 @@ def on_message(client, userdata, msg):
     # POST data to predict the output label
     json_data = json.dumps(payload)
     print(json_data)
-    # post_to_predict(json_data)
+    post_to_predict(json_data, sensor_point)
 
 # Function to post to real-time prediction endpoint
-# def post_to_predict(data):
-#     response = requests.post(predict_url, data=data)
-#     if response.status_code == 200:
-#         print("POST request successful")
-#     else:
-#         print("POST request failed!", response.status_code)
+def post_to_predict(data,sensor_point):
+    response = requests.post(predict_url, data=data, headers={'Sensor-Number': sensor_point})
+    if response.status_code == 200:
+        print("POST request successful")
+    else:
+        print("POST request failed!", response.status_code)
 
 # Function to write data to InfluxDB
 def write_to_influxdb(data, sensor_point):
