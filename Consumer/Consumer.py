@@ -54,15 +54,15 @@ def on_message(client, userdata, msg):
     # POST data to predict the output label
     json_data = json.dumps(payload)
     print(json_data)
-    # post_to_predict(json_data)
+    post_to_predict(json_data, sensor_point)
 
 # Function to post to real-time prediction endpoint
-# def post_to_predict(data):
-#     response = requests.post(predict_url, data=data)
-#     if response.status_code == 200:
-#         print("POST request successful")
-#     else:
-#         print("POST request failed!", response.status_code)
+def post_to_predict(data,sensor_point):
+    response = requests.post(predict_url, data=data, headers={'Sensor-Number': sensor_point})
+    if response.status_code == 200:
+        print("POST request successful")
+    else:
+        print("POST request failed!", response.status_code)
 
 # Function to write data to InfluxDB
 def write_to_influxdb(data, sensor_point):
