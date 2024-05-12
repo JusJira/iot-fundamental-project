@@ -18,6 +18,7 @@ This project is part of the 2102541 IoT Fundamentals course
   - [ESP32 Code](#esp32-code)
   - [Consumer](#consumer)
   - [Python Prediction Model](#python-prediction-model)
+  - [Command Center](#command-center)
 
 ## Members
 
@@ -50,6 +51,8 @@ This project is part of the 2102541 IoT Fundamentals course
 - Docker Container
   - MQTT Broker ([EMQX](https://www.emqx.io/))
   - MQTT Consumer (Reads data from MQTT and sends it to InfluxDB on [Cloud Server](#cloud-server-iotcloudserve))
+  - Command Center
+    - Polls the data from InfluxDB and sends a trigger to the Sensors via MQTT
 
 #### Cloud Server (IoTCloudServe)
 
@@ -80,6 +83,10 @@ This project is part of the 2102541 IoT Fundamentals course
 - Receive requests from the [Consumer](#consumer) and then fetch data from InfluxDB to make a prediction, then save the prediction on InfluxDB
 - [RealTimePrediction.py](Prediction/RealTimePrediction.py) this code is used as an API to receive requests from the Consumer
 - [IoT_fun_Final.ipynb](PredictionTraining/IoT_fun_Final.ipynb) this code was used to train the model
+
+### Command Center
+
+- Polls the data from InfluxDB and sends it to the sensors via MQTT
 
 ## Deployment
 
