@@ -1,39 +1,40 @@
-#include "time.h"
-#include <Wire.h>
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_HTS221.h>
+#include "time.h"
+#include <Wire.h>
 #include <WiFi.h>
-
 #include <PubSubClient.h>
+
 
 // WiFi Details
 const char* ssid = "IoT5";
 const char* WIFI_PASSWORD = "iotgroup5";
 const char* ntpServer = "pool.ntp.org";
 
-#define UPDATEDATA   "@msg/data/3"
+// MQTT topics
+#define topicToPublish   "@msg/data/3"
+#define topicToSubscribe "@msg/cc"
 
+// MQTT-Connection
 WiFiClient client;
 PubSubClient mqtt(client);
 
+// On-board sensors
 Adafruit_BMP280 bmp;
 Adafruit_HTS221 hts;
 
+// Storing data in a queue
 QueueHandle_t sensorDataQueue;
 
+// IPAddress mqtt_server(192,168,1,200);
 const char* mqtt_server = "raspi.lan";
 const int mqtt_port = 1883;
 
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-}
+// Built-in RGB LED
+#define PIN 18 // not sure
+#define NUMPIXELS 1 // only 1 RGB LED is on Cucumber board 
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 void reconnect() {
   // Loop until we're reconnected
@@ -118,14 +119,15 @@ void sendSensorData(void *parameter) {
     float temp_bmp = bmp.readTemperature();
     float pressure_bmp = bmp.readPressure();
 
-
     char json_body[200];
+
     const char json_tmpl[] = "{\"temperature\": %.2f,"
                              "\"humidity\": %.2f," 
                              "\"pressure\": %.2f}";
+    // sprintf(var, format, arg);  %.2f = round the float to two decimal places                   
     sprintf(json_body, json_tmpl, temp_hts, humid_hts, pressure_bmp);
 
-    Serial.println(json_body);
+    Serial.println(json_body); //json message is a string
         
     // Queue JSON message to the back of the FIFO queue
     xQueueSendToBack(sensorDataQueue, &json_body, portMAX_DELAY);
@@ -144,7 +146,7 @@ void publishDataFromQueue(void *parameter) {
       if (xQueueReceive(sensorDataQueue, &json_body, portMAX_DELAY) == pdPASS) {
         // Publish data to Netpie
         if (mqtt.connected()) {
-          mqtt.publish(UPDATEDATA, json_body);
+          mqtt.publish(topicToPublish, json_body);
         } else {
           // If MQTT connection is not established, attempt to reconnect
           reconnect();
@@ -157,13 +159,83 @@ void publishDataFromQueue(void *parameter) {
   }
 }
 
+// When the JSON messages arrive:
+// {"sensor": 1, "predictedTemp": 28.252, "predictedHumidity": 79.338}
+// {"sensor": 2, "predictedTemp": 37.816, "predictedHumidity": 49.733}
+// {"sensor": 3, "predictedTemp": 36.209, "predictedHumidity": 62.834}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived on topic: [");
+  Serial.print(topic);
+  Serial.print("] ");
+
+  char jsonMessage[200];
+
+  for (int i = 0; i < length; i++) {
+    // Serial.print((char)payload[i]);
+    jsonMessage[i] = (char)payload[i];
+  }
+
+  Serial.println(jsonMessage); 
+
+  //Extract the numbers from JSON message
+  String str = String(jsonMessage);
+  String numStr = "";
+  float valToCompare[3];
+  int k = 0;
+  for (int i = 0; i < str.length(); i++) {
+    char ch = str.charAt(i);
+    if (isdigit(ch) || ch == '-' || ch == '.') {
+      numStr += ch;
+    } else if (numStr != "") {
+      float num = numStr.toFloat();
+      Serial.println(num);
+      valToCompare[k] = num;
+      k += 1;
+      numStr = "";
+    }
+  }
+  // Get current temp & humidity value to check the model accuracy
+  sensors_event_t temp, humidity;
+  hts.getEvent(&humidity, &temp);
+  
+  float temp_hts = temp.temperature;
+  float humid_hts = humidity.relative_humidity;
+    
+  // Check sensor No.
+  if(int(valToCompare[0]) == 3){
+    Serial.println("Yep, it's mine");
+    // Check predicted temperature accuracy
+    if(abs(valToCompare[1] - temp_hts) > 10){
+      // LED turns red
+      pixels.setPixelColor(0, pixels.Color(150, 0, 0));
+    }else{
+      // LED turns green
+      pixels.setPixelColor(0, pixels.Color(0, 150, 0));
+    }
+    // Check predicted humidity accuracy
+    if(abs(valToCompare[2] - humid_hts) > 10 ){
+      // LED turns blue
+      pixels.setPixelColor(0, pixels.Color(0, 0, 150));
+    }else{
+      // LED turns green
+      pixels.setPixelColor(0, pixels.Color(0, 150, 0));
+    }
+    pixels.show();   // Send the updated pixel colors to the hardware.
+  }else{
+    Serial.println("Nope, discard the message pls");
+  }
+}
 
 void setup() {
   Serial.begin(115200);
+  pixels.begin(); // RGB LED
+  pixels.clear(); // Set all pixel colors to 'off'
   setupNetwork();
   setupHardware();
   mqtt.setServer(mqtt_server, mqtt_port);
-  mqtt.setCallback(callback);
+  mqtt.setCallback(callback); //set a callback function name "callback" to be called when a message arrives from a subscribed topic
+  mqtt.subscribe(topicToSubscribe);
   sensorDataQueue = xQueueCreate(10, sizeof(char[200]));
   xTaskCreatePinnedToCore(
     taskDisplayTime,
