@@ -23,6 +23,7 @@ This project is part of the 2102541 IoT Fundamentals course
 
 - Justin Jiraratsakul 6430039021
 - Chayuth Thanakitkoses 6430068221
+- Nantiya Tanasupawat 6430207121
 - Sarith Rapeearpakul 6430408021
 
 ## System Architecture
