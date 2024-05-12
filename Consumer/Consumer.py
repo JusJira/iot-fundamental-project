@@ -40,7 +40,7 @@ def on_connect(client, userdata, flags, rc, properties):
     print("Connected with result code "+str(rc))
  
 # Subscribe to a topic
-mqttc.subscribe([("@msg/data/1", 0),("@msg/data/2", 0),("@msg/data/3", 0)])
+mqttc.subscribe([("@msg/data/1", 0),("@msg/data/2", 0),("@msg/data/3", 0),("@msg/data/4", 0)])
  
 def on_message(client, userdata, msg):
     """ The callback for when a PUBLISH message is received from the server."""
