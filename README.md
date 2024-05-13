@@ -18,6 +18,7 @@ This project is part of the 2102541 IoT Fundamentals course
   - [ESP32 Code](#esp32-code)
   - [Consumer](#consumer)
   - [Python Prediction Model](#python-prediction-model)
+  - [Data Analytics](#data-analytics)
   - [Command Center](#command-center)
 
 ## Members
@@ -67,9 +68,10 @@ This project is part of the 2102541 IoT Fundamentals course
 
 - Reads data from the sensors and sends it to an MQTT Server (Raspberry Pi)
 - [main.ino](ESP32/main.ino) sends the data directly without relying on the queue
-- [queue.ino](ESP32/queue.ino) adds the data to the queue and sends it when time is up (Using XTask)
+- [queue_hts221.ino](ESP32/queue_hts221.ino) adds the data to the queue and sends it when time is up (Using XTask) for boards that uses the HTS221 sensor.
+- [queue_sht4x.ino](ESP32/queue_sht4x.ino) adds the data to the queue and sends it when time is up (Using XTask) for boards that uses the SHT4X sensor.
 - Multiple sensor support
-  - Assign each sensor different topics (@msg/data/1,@msg/data/2,@msg/data/3 and @msg/data/4)
+  - Assign each sensor different topics (@msg/data/1,@msg/data/2 and @msg/data/3)
 
 ### Consumer
 
@@ -82,7 +84,11 @@ This project is part of the 2102541 IoT Fundamentals course
 
 - Receive requests from the [Consumer](#consumer) and then fetch data from InfluxDB to make a prediction, then save the prediction on InfluxDB
 - [RealTimePrediction.py](Prediction/RealTimePrediction.py) this code is used as an API to receive requests from the Consumer
-- [IoT_fun_Final.ipynb](PredictionTraining/IoT_fun_Final.ipynb) this code was used to train the model
+
+### Data Analytics
+
+- [IoT_fun_Final.ipynb](/Data%20Analytics/PredictionTraining/IoT_fun_Final.ipynb) this code was used to train the model
+- [Data_analytic_IoT.ipynb](/Data%20Analytics/Data%20Analysis/Data_analytic_IoT.ipynb) this code was used to find insight about the data
 
 ### Command Center
 
