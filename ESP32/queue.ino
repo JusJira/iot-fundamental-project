@@ -44,6 +44,9 @@ void reconnect() {
     // Attempt to connect
     if (mqtt.connect(mqtt_server)) {
       Serial.println("connected");
+      mqtt.subscribe(topicToSubscribe);
+      Serial.print("Subscribed to ");
+      Serial.println(topicToSubscribe);
     } else {
       Serial.print("failed, rc=");
       Serial.print(mqtt.state());
@@ -235,7 +238,6 @@ void setup() {
   setupHardware();
   mqtt.setServer(mqtt_server, mqtt_port);
   mqtt.setCallback(callback); //set a callback function name "callback" to be called when a message arrives from a subscribed topic
-  mqtt.subscribe(topicToSubscribe);
   sensorDataQueue = xQueueCreate(10, sizeof(char[200]));
   xTaskCreatePinnedToCore(
     taskDisplayTime,
