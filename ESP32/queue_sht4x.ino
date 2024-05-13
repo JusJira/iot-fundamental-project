@@ -44,6 +44,9 @@ void reconnect() {
     // Attempt to connect
     if (mqtt.connect(mqtt_server)) {
       Serial.println("connected");
+      mqtt.subscribe(topicToSubscribe);
+      Serial.print("Subscribed to ");
+      Serial.println(topicToSubscribe);
     } else {
       Serial.print("failed, rc=");
       Serial.print(mqtt.state());
@@ -203,20 +206,34 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // Check sensor No.
   if(int(valToCompare[0]) == 3){
     Serial.println("Yep, it's mine");
-    // Check predicted temperature accuracy
-    if(abs(valToCompare[1] - temp_hts) > 10){
-      // LED turns red
+
+    // Check predicted temperature & humidity accuracy
+    // 00
+    //! if temp & humid are both inaccurate => red
+    // 01
+    //? if humid is inaccurate => blue
+    // 10
+    //^ if temp is inaccurate => yellow
+    // 11
+    //* if temp & humid are both accurate => green
+    
+    float tempDiff = abs(valToCompare[1] - temp_hts);
+    float humidDiff = abs(valToCompare[2] - humid_hts);
+    // LED turns...
+    if((tempDiff > 10) && (humidDiff > 10)){
+      // red
       pixels.setPixelColor(0, pixels.Color(150, 0, 0));
-    }else{
-      // LED turns green
-      pixels.setPixelColor(0, pixels.Color(0, 150, 0));
-    }
-    // Check predicted humidity accuracy
-    if(abs(valToCompare[2] - humid_hts) > 10 ){
-      // LED turns blue
+
+    }else if ((tempDiff <= 10) && (humidDiff > 10)){
+      // blue
       pixels.setPixelColor(0, pixels.Color(0, 0, 150));
+
+    }else if ((tempDiff > 10) && (humidDiff <= 10)){
+      // yellow
+      pixels.setPixelColor(0, pixels.Color(150, 150, 0));
+
     }else{
-      // LED turns green
+      // green
       pixels.setPixelColor(0, pixels.Color(0, 150, 0));
     }
     pixels.show();   // Send the updated pixel colors to the hardware.
@@ -233,7 +250,6 @@ void setup() {
   setupHardware();
   mqtt.setServer(mqtt_server, mqtt_port);
   mqtt.setCallback(callback); //set a callback function name "callback" to be called when a message arrives from a subscribed topic
-  mqtt.subscribe(topicToSubscribe);
   sensorDataQueue = xQueueCreate(10, sizeof(char[200]));
   xTaskCreatePinnedToCore(
     taskDisplayTime,
