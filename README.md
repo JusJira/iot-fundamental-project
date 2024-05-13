@@ -89,7 +89,7 @@ This project is part of the 2102541 IoT Fundamentals course
 
 - [IoT_fun_Final.ipynb](/Data%20Analytics/PredictionTraining/IoT_fun_Final.ipynb) this code was used to train the model
 - [Data_analytic_IoT.ipynb](/Data%20Analytics/Data%20Analysis/Data_analytic_IoT.ipynb) this code was used to find insight about the data
-- [output.csv](/Data%20Analytics/output.csv) training data set
+- [output.csv](/Data%20Analytics/output.csv) training dataset
 
 ### Command Center
 
