@@ -10,6 +10,8 @@
 // WiFi Details
 const char* ssid = "IoT5";
 const char* WIFI_PASSWORD = "iotgroup5";
+
+// Real time clock
 const char* ntpServer = "pool.ntp.org";
 
 // MQTT topics
@@ -32,7 +34,7 @@ const char* mqtt_server = "raspi.lan";
 const int mqtt_port = 1883;
 
 // Built-in RGB LED
-#define PIN 18       // not sure
+#define PIN 18       
 #define NUMPIXELS 1  // only 1 RGB LED is on Cucumber board
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -41,8 +43,7 @@ void reconnect() {
   Serial.println(mqtt.connected());
   while (!mqtt.connected()) {
     Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    String clientId = "ESP32-";
+    String clientId = "ESP32-"; // Give each MQTT client (Cucumber board) a unique ID
     clientId += String(random(0xffff), HEX);
     if (mqtt.connect(clientId.c_str())) {
       Serial.println("connected");
@@ -65,10 +66,6 @@ void setupNetwork() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, WIFI_PASSWORD);
 
-  // while (WiFi.localIP().toString() == "0.0.0.0") {
-  //   delay(500);
-  //   Serial.println(WiFi.status());
-  // }
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.println(WiFi.status());
@@ -130,7 +127,7 @@ void sendSensorData(void* parameter) {
     // sprintf(var, format, arg);  %.2f = round the float to two decimal places
     sprintf(json_body, json_tmpl, temp_hts, humid_hts, pressure_bmp);
 
-    Serial.println(json_body);  //json message is a string
+    Serial.println(json_body);  //JSON message is a string
 
     // Queue JSON message to the back of the FIFO queue
     xQueueSendToBack(sensorDataQueue, &json_body, portMAX_DELAY);
@@ -205,7 +202,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   float temp_hts = temp.temperature;
   float humid_hts = humidity.relative_humidity;
 
-  // Check sensor No.
   // Convert the C-style string to a String object
   String messageString = String(topicToPublish);
 
@@ -214,6 +210,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   // Extract the substring containing the number
   String numberString = messageString.substring(lastSlashIndex + 1);
+
+  // Check sensor No.
   if (int(valToCompare[0]) == numberString.toInt()) {
     Serial.println("Yep, it's mine");
     // Check predicted temperature & humidity accuracy
