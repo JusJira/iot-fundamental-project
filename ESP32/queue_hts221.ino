@@ -144,7 +144,7 @@ void publishDataFromQueue(void* parameter) {
     if (uxQueueMessagesWaiting(sensorDataQueue) > 0) {
       // Receive data from the queue
       if (xQueueReceive(sensorDataQueue, &json_body, portMAX_DELAY) == pdPASS) {
-        // Publish data to Netpie
+        // Publish data to MQTT broker
         if (mqtt.connected()) {
           mqtt.publish(topicToPublish, json_body);
         } else {
