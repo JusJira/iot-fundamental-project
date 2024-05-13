@@ -28,7 +28,6 @@ mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 mqttc.connect(MQTT_BROKER_URL,1883)
 
 topic = "@msg/cc"
-message = "Your message"
 
 def job():
     for sensor_number in range(1, 4):
