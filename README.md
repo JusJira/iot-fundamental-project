@@ -103,5 +103,4 @@ The dashboard is deployed on the cloud server you can visit the page via this [l
 
 #### Preview
 
-![Dashboard Preview 1](/IMG_6144.PNG)
-![Dashboard Preview 2](/IMG_6145.PNG)
+![Dashboard Preview](/Grafana.png)
